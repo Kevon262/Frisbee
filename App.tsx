@@ -39,6 +39,7 @@ var totalFlashWrites = 0;
 var lastestThrowId = 0;
 var selectedThrowId = 0;
 var batteryVoltage = 0;
+var batteryPercent = "";
 var dataFromAccelerometers:any = [];
 //Variables for creating Packet String
 var hexStringPacketSize = new Uint8Array(6);
@@ -92,31 +93,25 @@ export default function Bluetooth() {
   var [colorProgressBarBattery, setColorProgressBarBattery] = useState("");
   const [progressbarBattery, setProgressBarBattery] = useState(0);
   const calculateProgressBatteryPercentage = () => {
-    // Define the min and max voltage values
-    const minValue = 3.2;
-    const maxValue = 4.2;
-    // Ensure that interfaceDeviceVoltageDisplay is within the range
-    const clampedVoltage = Math.max(minValue, Math.min(maxValue, batteryVoltage));
-    // Calculate the progress percentage based on the voltage range
-    const progressPercentage = ((clampedVoltage - minValue) / (maxValue - minValue)) * 100;
-    if (progressPercentage < 10) {
+    var percent = CalManager.calculateBatteryPercentage(batteryVoltage);
+    if (percent < 10) {
       setColorProgressBarBattery("#8B0000");
-    } else if (progressPercentage <  25) {
+    } else if (percent <  25) {
       setColorProgressBarBattery("red");
-    } else if (progressPercentage <  75) {
+    } else if (percent <  75) {
       setColorProgressBarBattery("blue");
-    } else if (progressPercentage <= 100) {
+    } else if (percent <= 100) {
       setColorProgressBarBattery("green");
     } else {
       setColorProgressBarBattery("#841584");
     }
-    return progressPercentage;
   }
   //Update progressbar state every 100 milliseconds
   useEffect(() => {
     const interval = setInterval(() => {
       setProgressBar(calculateProgressPercentage());
-      setProgressBarBattery(calculateProgressBatteryPercentage());
+      setProgressBarBattery(CalManager.calculateBatteryPercentage(batteryVoltage))
+      calculateProgressBatteryPercentage();
     }, 100);
     return () => clearInterval(interval);
   }, []);
@@ -306,20 +301,15 @@ export default function Bluetooth() {
             //console.log(totalValuesPerThrow, totalPacketsFromThrowProgress, totalPacketsFromThrowID);
             if (totalValuesPerThrow === 0) {
               console.log("All data received, calling dataReceivedPromise");
-              
-
-              var outputArray = dataFromAccelerometers.map(values => values.join('\t')).join('\n');
-              var outputArray2 = dataFromAccelerometers;
-        
-              FileManager.writeToFile(outputArray, FileManager.getFilePath("Report", selectedThrowId));
-              FileManager.writeToFile(outputArray2, FileManager.getFilePath("Report_Array", selectedThrowId));
-          
-              var roundsPerSecondCalculated = CalManager.calculateRotationalPerSecond(outputArray2);
-              var forceCalculated = CalManager.calculateForceOnDisc(outputArray2)
+              var outputDataArraySorted = dataFromAccelerometers.map(values => values.join('\t')).join('\n');
+              var outputDataArrayUnsorted = dataFromAccelerometers;
+              FileManager.writeToFile(outputDataArraySorted, FileManager.getFilePath("Report", selectedThrowId));
+              FileManager.writeToFile(outputDataArrayUnsorted, FileManager.getFilePath("Report_Array", selectedThrowId));
+              var roundsPerSecondCalculated = CalManager.calculateRotationsPerSecond(outputDataArrayUnsorted);
+              var forceCalculated = CalManager.calculateForceOnDisc(outputDataArrayUnsorted)
               FileManager.writeToFile("Max Rotation Speed: " + roundsPerSecondCalculated + '\t' + "Max Force: " + forceCalculated, FileManager.getFilePath("Report", selectedThrowId));
               setInterfaceDeviceRotationDisplay(roundsPerSecondCalculated);
               setInterfaceDeviceSpeedDisplay(forceCalculated);
-
               onDataReceived();
             }
           } else if (receivedDataArray[8] == 4) {
@@ -450,7 +440,8 @@ export default function Bluetooth() {
           <ProgressBar progress={progressbarBattery / 100} color={colorProgressBarBattery} />
       </View>
 
-      
+      <Text style={Styles.batteryPercentInfo}> {progressbarBattery.toFixed(0)}%</Text>
+      <Text style={Styles.batteryVoltageInfo}> {(batteryVoltage).toFixed(1)}V</Text>
 
       <View style={{paddingBottom: 10}}></View>
 

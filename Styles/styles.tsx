@@ -54,7 +54,7 @@ export const Styles = StyleSheet.create({
   },
   progressBarBatteryStyle: {
     position: 'absolute',
-    top:35,
+    top:40,
     right:20,
     height: 35,
     width: 50,
@@ -63,6 +63,20 @@ export const Styles = StyleSheet.create({
   },
   button: {
     marginHorizontal: 20,
+  },
+  batteryVoltageInfo: {
+    fontSize: 15,
+    fontFamily: 'Cochin',
+    position: 'absolute',
+    top:70,
+    right:20,
+  },
+  batteryPercentInfo: {
+    fontSize: 15,
+    fontFamily: 'Cochin',
+    position: 'absolute',
+    top:50,
+    right:20,
   },
   throwInfo: {
     fontSize: 15,
