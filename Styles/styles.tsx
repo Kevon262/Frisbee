@@ -69,14 +69,14 @@ export const Styles = StyleSheet.create({
     fontFamily: 'Cochin',
     position: 'absolute',
     top:70,
-    right:20,
+    right:25,
   },
   batteryPercentInfo: {
     fontSize: 15,
     fontFamily: 'Cochin',
     position: 'absolute',
     top:50,
-    right:20,
+    right:25,
   },
   throwInfo: {
     fontSize: 15,

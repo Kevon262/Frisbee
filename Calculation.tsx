@@ -37,49 +37,61 @@ export class Calculations {
     * Date Accesed: 026/04/23
     */
     calculateBatteryPercentage(voltage: number): number {
-        const batteryPoints = [
-          [0, 3.224],
-          [5, 3.665],
-          [10, 3.715],
-          [20, 3.775],
-          [30, 3.814],
-          [40, 3.836],
-          [50, 3.869],
-          [60, 3.924],
-          [70, 3.977],
-          [80, 4.025],
-          [90, 4.123],
-          [100, 4.189],
-        ];
-        if (voltage <= batteryPoints[0][1]) {
-          return 0;
-        } else if (voltage >= batteryPoints[batteryPoints.length - 1][1]) {
+      const batteryPoints = [
+        [0, 3.224],
+        [5, 3.665],
+        [10, 3.715],
+        [20, 3.775],
+        [30, 3.814],
+        [40, 3.836],
+        [50, 3.869],
+        [60, 3.924],
+        [70, 3.977],
+        [80, 4.025],
+        [90, 4.123],
+        [100, 4.189],
+      ];
+      if (voltage <= batteryPoints[0][1]) {
+        return 0;
+      } else if (voltage >= batteryPoints[batteryPoints.length - 1][1]) {
+        return 100;
+      }
+      
+      // Find the battery point closest to the given voltage
+      let closestPoint = batteryPoints[0];
+      for (let i = 1; i < batteryPoints.length; i++) {
+        const point = batteryPoints[i];
+        const distance = Math.abs(point[1] - voltage);
+        const closestDistance = Math.abs(closestPoint[1] - voltage);
+        if (distance < closestDistance) {
+          closestPoint = point;
+        }
+      }
+      // Interpolate the battery percentage based on the closest point and the surrounding points
+      const [x0, y0] = closestPoint;
+      let [x1, y1] = closestPoint;
+      for (let i = 0; i < batteryPoints.length; i++) {
+        const point = batteryPoints[i];
+        if (point[0] > x0) {
+          x1 = point[0];
+          y1 = point[1];
+          break;
+        }
+      }
+
+        // If x1 and x0 are equal (voltage is equal to the last point), return 100
+        if (x1 === x0) {
           return 100;
         }
-        // Find the battery point closest to the given voltage
-        let closestPoint = batteryPoints[0];
-        for (let i = 1; i < batteryPoints.length; i++) {
-          const point = batteryPoints[i];
-          const distance = Math.abs(point[1] - voltage);
-          const closestDistance = Math.abs(closestPoint[1] - voltage);
-          if (distance < closestDistance) {
-            closestPoint = point;
-          }
-        }
-        // Interpolate the battery percentage based on the closest point and the surrounding points
-        const [x0, y0] = closestPoint;
-        let [x1, y1] = closestPoint;
-        for (let i = 0; i < batteryPoints.length; i++) {
-          const point = batteryPoints[i];
-          if (point[0] > x0) {
-            x1 = point[0];
-            y1 = point[1];
-            break;
-          }
-        }
-        const m = (y1 - y0) / (x1 - x0);
-        const b = y0 - m * x0;
-        const percentage = (voltage - b) / m;
-        return Math.max(0, Math.min(100, percentage));
+
+      // If voltage is equal to the last point in the batteryPoints array, return 100
+      if (voltage === batteryPoints[batteryPoints.length - 1][1]) {
+        return 100;
       }
+      const m = (y1 - y0) / (x1 - x0);
+      const b = y0 - m * x0;
+      const percentage = (voltage - b) / m;
+      return Math.max(0, Math.min(100, percentage));
+    }
+    
 }

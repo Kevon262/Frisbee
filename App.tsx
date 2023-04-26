@@ -265,7 +265,6 @@ export default function Bluetooth() {
           var deviceStatus = ((batteryReceivedData[5] << 8 | batteryReceivedData[6]));
           setInterfaceAccelStatusDisplay(deviceAccelerometerError);
           setInterfaceDeviceStatusDisplay(deviceStatus);
-          //setInterfaceDeviceVoltageDisplay(batteryVoltageLevel / 1000);
           batteryVoltage = batteryVoltageLevel / 1000;
         }
       },
