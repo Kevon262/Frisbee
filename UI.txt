@@ -1,0 +1,137 @@
+    <View>
+      <View style={{paddingBottom: 20}}></View>
+
+      {/* Title */}
+      <View style={Styles.rowView}>
+        <Text style={Styles.titleText}>Frisbee</Text>
+      </View>
+
+      <View style={{paddingBottom: 20}}></View>
+
+      {/* Connect Button */}
+      <View style={Styles.rowView}>
+        <TouchableOpacity style={{width: 125}}>
+          {!isConnected ? (
+            <Button title="Connect" color='#44d8be' onPress={() => { scanForDevices(); }} disabled={false} />
+          ) : (
+            <Button title="Disonnect" color='#f15a29' onPress={() => { disconnectFromDevice(); }} disabled={false} />
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <View style={{paddingBottom: 20}}></View>
+
+      <Text style={Styles.throwInfo}>Throw: {interfaceDeviceThrowsDisplay}</Text>
+      <Text style={Styles.forceInfo}>Force: {interfaceDeviceSpeedDisplay} </Text>
+      <Text style={Styles.rotationInfo}>RPS: {interfaceDeviceRotationDisplay} </Text>
+
+      <View style={Styles.progressBarBatteryStyle}>
+          <ProgressBar progress={progressbarBattery / 100} color={colorProgressBarBattery} />
+      </View>
+
+      <Text style={Styles.batteryPercentInfo}> {progressbarBattery.toFixed(0)}%</Text>
+      <Text style={Styles.batteryVoltageInfo}> {(batteryVoltage).toFixed(1)}V</Text>
+
+      <View style={{paddingBottom: 10}}></View>
+
+      <View style={Styles.rowView}>
+        <View style={Styles.buttonStyle}>
+          <Button title="Receive Data" style={Styles.button} color="#841584" onPress={() => sendDataRequest('01')} />
+        </View>
+        <TextInput
+            style={Styles.input}
+            onChangeText={handleThrowFieldChange}
+            value={inputThrowField.toString()}
+            keyboardType="numeric"
+          />
+        <View style={Styles.buttonStyle}>
+          <Button title="Print   Data" style={Styles.button} color="#841584" onPress={() => receiveDataFromDevice(inputThrowField)} />
+        </View>
+      </View>
+
+      <View style={{paddingBottom: 30}}></View>
+
+      <View style={Styles.rowView}>
+        <View style={Styles.progressBarStyle}>
+          <ProgressBar progress={progressBar  / 100} color={colorProgressBar} />
+        </View>
+      </View> 
+
+      <View style={{paddingBottom: 0}}></View>
+
+      <View style={Styles.rowView}>
+        <View style={Styles.buttonStyle}>
+          <Button title="Flash" style={Styles.button} color="#841584" onPress={() => writeToCharacteristic('04')} />
+        </View>
+        <View style={Styles.buttonStyle}>
+          <Button title="Power" style={Styles.button} color="#841584" onPress={() => writeToCharacteristic('05')} />
+        </View>
+        <View style={Styles.buttonStyle}>
+          <Button title="Extra" style={Styles.button} color="#841584" onPress={() => writeExtraInformation()} />
+        </View>
+      </View>
+
+      <View style={{paddingBottom: 20}}></View>
+
+      <View style={Styles.rowView}>
+        <Text style={Styles.baseText}>Log: {interfaceDeviceLogDisplay}</Text>
+      </View>
+
+      <View style={{paddingBottom: 20}}></View>  
+      
+      <Text style={Styles.typeInfo}>Type: {inputTypeField}</Text>
+      <View style={Styles.rowView}>
+        <TextInput
+          style={Styles.inputNameNType}
+          onChangeText={handleDiscFieldChange}
+          value={inputDiscField}
+        />  
+      </View>
+      <Text style={Styles.nameInfo}>Name: {inputNameField}</Text>
+
+      <View style={{paddingBottom: 30}}></View>
+
+      <View style={Styles.rowView}>
+        <View style={Styles.buttonStyleThrowType}>
+          <Button title="Kevin" style={Styles.button} color="#f99221" onPress={() => setInputNameField("Kevin")} />
+        </View>
+        <View style={Styles.buttonStyleThrowType}>
+          <Button title="Daniel" style={Styles.button} color="#f99221" onPress={() => setInputNameField("Daniel")} />
+        </View>
+      </View>
+
+      <View style={{paddingBottom: 30}}></View>
+
+      <View style={Styles.rowView}>
+        <View style={Styles.buttonStyleThrowType}>
+          <Button title="Tree" style={Styles.button} color="#f99221" onPress={() => setInputDiscField("Tree")} />
+        </View>
+        <View style={Styles.buttonStyleThrowType}>
+          <Button title="Null" style={Styles.button} color="#f99221" onPress={() => setInputDiscField("")} />
+        </View>
+      </View>
+      
+      <View style={{paddingBottom: 30}}></View>
+
+      <View style={Styles.rowView}>
+      <View style={Styles.buttonStyleThrowType}>
+          <Button title="Back" style={Styles.button} color="#f99221" onPress={() => setInputTypeField("Back")} />
+        </View>
+        <View style={Styles.buttonStyleThrowType}>
+          <Button title="Fore" style={Styles.button} color="#f99221" onPress={() => setInputTypeField("Fore")} />
+        </View>
+      </View>
+
+      <View style={{paddingBottom: 30}}></View>
+
+      <View style={Styles.rowView}>
+        <View style={Styles.buttonStyleThrowType}>
+          <Button title="Nade" style={Styles.button} color="#f99221" onPress={() => setInputTypeField("Nade")} />
+        </View>
+        <View style={Styles.buttonStyleThrowType}>
+          <Button title="Thawk" style={Styles.button} color="#f99221" onPress={() => setInputTypeField("Thawk")} />
+        </View>
+      </View>
+              
+
+    </View>

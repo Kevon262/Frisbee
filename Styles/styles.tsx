@@ -8,6 +8,7 @@ export const Styles = StyleSheet.create({
   titleText: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: "#FDFEFE",
   },
   rowView: {
     justifyContent: 'space-around',
@@ -19,27 +20,11 @@ export const Styles = StyleSheet.create({
     margin: 1,
     borderWidth: 1,
     padding: 10,
-    width: 60,
-    textAlign: 'center',
-  },
-  inputNameNType: {
-    height: 30,
-    margin: -5,
-    borderWidth: 1,
-    padding: 0,
-    width: 100,
-    textAlign: 'center',
-  },
-  buttonStyleNameNType: {
     width: 80,
     textAlign: 'center',
   },
   buttonStyle: {
-    width: 80,
-    textAlign: 'center',
-  },
-  buttonStyleExtra: {
-    width: 130,
+    width: 100,
     textAlign: 'center',
   },
   buttonStyleThrowType: {
@@ -48,70 +33,97 @@ export const Styles = StyleSheet.create({
   },
   progressBarStyle: {
     height: 35,
-    width: 315,
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  progressBarBatteryStyle: {
-    position: 'absolute',
-    top:40,
-    right:20,
-    height: 35,
-    width: 50,
+    width: 330,
     borderRadius: 1,
     overflow: 'hidden',
   },
   button: {
     marginHorizontal: 20,
   },
-  batteryVoltageInfo: {
-    fontSize: 15,
-    fontFamily: 'Cochin',
+
+  progressBarBatteryStyle: {
     position: 'absolute',
-    top:70,
-    right:25,
+    top:20,
+    right:15,
+    height: 35,
+    width: 50,
+    borderRadius: 1,
+    overflow: 'hidden',
   },
   batteryPercentInfo: {
     fontSize: 15,
     fontFamily: 'Cochin',
     position: 'absolute',
-    top:50,
-    right:25,
+    top:70,
+    right:15,
+    color: "#FDFEFE",
   },
+  batteryVoltageInfo: {
+    fontSize: 15,
+    fontFamily: 'Cochin',
+    position: 'absolute',
+    top:85,
+    right:15,
+    color: "#FDFEFE",
+  },
+
   throwInfo: {
     fontSize: 15,
     fontFamily: 'Cochin',
     position: 'absolute',
-    top:30,
-    left:20,
+    top:85,
+    left:15,
+    color: "#FDFEFE",
+  },
+
+  rotationInfo: {
+    fontSize: 15,
+    fontFamily: 'Cochin',
+    position: 'absolute',
+    top:340,
+    left:22,
+    color: "#FDFEFE",
   },
   forceInfo: {
     fontSize: 15,
     fontFamily: 'Cochin',
     position: 'absolute',
-    top:50,
-    left:20,
+    top:340,
+    left:142,
+    color: "#FDFEFE",
   },
-  rotationInfo: {
+  speedInfo: {
     fontSize: 15,
     fontFamily: 'Cochin',
     position: 'absolute',
-    top:70,
-    left:20,
+    top:340,
+    left:262,
+    color: "#FDFEFE",
   },
-  typeInfo: {
+  
+  logInfo: {
     fontSize: 15,
     fontFamily: 'Cochin',
     position: 'absolute',
-    top:345,
-    left:250,
+    top:430,
+    left:22,
+    color: "#FDFEFE",
   },
-  nameInfo: {
+  errorInfo: {
     fontSize: 15,
     fontFamily: 'Cochin',
     position: 'absolute',
-    top:345,
-    left:20,
+    top:480,
+    left:22,
+    color: "#FDFEFE",
+  },
+  statusInfo: {
+    fontSize: 15,
+    fontFamily: 'Cochin',
+    position: 'absolute',
+    top:530,
+    left:22,
+    color: "#FDFEFE",
   },
 
 

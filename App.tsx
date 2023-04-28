@@ -6,7 +6,7 @@
  */
 
 import React, {useState, useEffect} from 'react';
-import {TouchableOpacity, Button, PermissionsAndroid, View, Text, SafeAreaView, TextInput, LogBox, KeyboardAvoidingView, Platform} from 'react-native';
+import {TouchableOpacity, Button, PermissionsAndroid, View, Text, FlatList, SafeAreaView, TextInput, LogBox, KeyboardAvoidingView, Platform} from 'react-native';
 import {BleManager, Characteristic, Device} from 'react-native-ble-plx';
 import base64 from 'react-native-base64';
 import {DeviceEventEmitter} from 'react-native';
@@ -16,6 +16,7 @@ import {File} from './File';
 import {hex2a, base64ToHex, stringToHexArray, uint16ToInt16} from './Convert';
 import {Calculations} from './Calculation';
 import {Permissions} from './Permissions';    
+import {Messages} from './Messages';
 
 LogBox.ignoreLogs(['new NativeEventEmitter']); // Ignore log notification by message
 LogBox.ignoreAllLogs(); //Ignore all log notifications
@@ -24,6 +25,7 @@ const BLEManager = new BleManager();
 const FileManager = new File();
 const CalManager = new Calculations();
 const PermManager = new Permissions();
+const MdsManager = new Messages();
 
 //UUIDs
 const SERVICE_UUID = '0000fe40-cc7a-482a-984a-7f2ed5b3e58f';
@@ -39,37 +41,29 @@ var totalFlashWrites = 0;
 var lastestThrowId = 0;
 var selectedThrowId = 0;
 var batteryVoltage = 0;
-var batteryPercent = "";
 var dataFromAccelerometers:any = [];
 //Variables for creating Packet String
 var hexStringPacketSize = new Uint8Array(6);
 var hexStringPacketThrow = new Uint8Array(4);
 var hexStringPacketTemplate = new Uint8Array([2, 0 ,0 ,0 ,0 ,0]); 
-var hexStringPacketFrame = ""; 
+var hexStringPacketFrame = ''; 
 //Variables for creating Data String
 var hexStringDataSize = new Uint8Array(6);
 var hexStringDataTemplate = new Uint8Array([3, 0]);
-var hexStringDataFrame = "";
-
+var hexStringDataFrame = '';
 
 export default function Bluetooth() {
   //Is a device connected? / What device is connected?
   var [isConnected, setIsConnected] = useState(false); 
   var [connectedDevice, setConnectedDevice] = useState<Device>();  
   //Display Messages
-  const [interfaceDeviceVoltageDisplay, setInterfaceDeviceVoltageDisplay] = useState(0);
   const [interfaceDeviceThrowsDisplay, setInterfaceDeviceThrowsDisplay] = useState(0);
-  const [interfaceDeviceLogDisplay, setInterfaceDeviceLogDisplay] = useState("");
-  const [interfaceDeviceStatusDisplay, setInterfaceDeviceStatusDisplay] = useState(0);
-  const [interfaceDeviceRotationDisplay, setInterfaceDeviceRotationDisplay] = useState("0");
-  const [interfaceDeviceSpeedDisplay, setInterfaceDeviceSpeedDisplay] = useState("0");
-  const [interfaceAccelStatusDisplay, setInterfaceAccelStatusDisplay] = useState(0);
-  const keyboardVerticalOffset = Platform.OS === 'ios' ? 64 : 50
-  //Midlertidig settings
-  var [inputNameField, setInputNameField] = useState<string>("");
-  var [inputTypeField, setInputTypeField] = useState<string>("");
-  var [inputDiscField, setInputDiscField] = useState<string>("");
-  const handleDiscFieldChange = (text:string) => {setInputDiscField(text);};
+  const [interfaceDeviceLogDisplay, setInterfaceDeviceLogDisplay] = useState('');
+  const [interfaceDeviceStatusDisplay, setInterfaceDeviceStatusDisplay] = useState<string>();
+  const [interfaceAccelStatusDisplay, setInterfaceAccelStatusDisplay] = useState<string | null>();
+  const [interfaceDeviceRotationDisplay, setInterfaceDeviceRotationDisplay] = useState('0');
+  const [interfaceDeviceForceDisplay, setInterfaceDeviceForceDisplay] = useState('0');
+  const [interfaceDeviceSpeedDisplay, setInterfaceDeviceSpeedDisplay] = useState('0');
 
   //Update Selected Throw Number
   var [inputThrowField, setInputThrowField] = useState<number>(0); 
@@ -80,7 +74,7 @@ export default function Bluetooth() {
   };
 
   //Progressbar for interface
-  var [colorProgressBar, setColorProgressBar] = useState("blue");
+  var [colorProgressBar, setColorProgressBar] = useState('blue');
   const [progressBar, setProgressBar] = useState(0);
   const calculateProgressPercentage = () => {
     if (totalPacketsFromThrowProgress === 0) {
@@ -90,22 +84,23 @@ export default function Bluetooth() {
   };
 
   //Progressbar for battery
-  var [colorProgressBarBattery, setColorProgressBarBattery] = useState("");
+  var [colorProgressBarBattery, setColorProgressBarBattery] = useState('');
   const [progressbarBattery, setProgressBarBattery] = useState(0);
   const calculateProgressBatteryPercentage = () => {
     var percent = CalManager.calculateBatteryPercentage(batteryVoltage);
     if (percent < 10) {
-      setColorProgressBarBattery("#8B0000");
+      setColorProgressBarBattery('#8B0000');
     } else if (percent <  25) {
-      setColorProgressBarBattery("red");
+      setColorProgressBarBattery('red');
     } else if (percent <  75) {
-      setColorProgressBarBattery("blue");
+      setColorProgressBarBattery('blue');
     } else if (percent <= 100) {
-      setColorProgressBarBattery("green");
+      setColorProgressBarBattery('green');
     } else {
-      setColorProgressBarBattery("#841584");
+      setColorProgressBarBattery('#841584');
     }
   }
+
   //Update progressbar state every 100 milliseconds
   useEffect(() => {
     const interval = setInterval(() => {
@@ -131,16 +126,6 @@ export default function Bluetooth() {
       resolveDataReceivedPromise();
     }
     DeviceEventEmitter.emit('dataReceived');
-  }
-
-  async function writeExtraInformation () {
-    var throwInformation = ("Type: " + inputTypeField + "\t Name: " + inputNameField + "\t Extra: " + inputDiscField);
-    FileManager.writeToFile(throwInformation, FileManager.getFilePath("Report", selectedThrowId));
-    setInterfaceDeviceLogDisplay('Added Extra');
-    await timeout(200);
-    setInputTypeField("");
-    setInputNameField("");
-    setInputDiscField("");
   }
 
   //Scan for Devices
@@ -180,7 +165,7 @@ export default function Bluetooth() {
         //  Set what to do when DC is detected
         BLEManager.onDeviceDisconnected(device.id, (error, device) => {
           totalValuesPerThrow = 0;
-          setColorProgressBar("#44d8be");
+          setColorProgressBar('#44d8be');
           console.warn('Device Disconnected');
           setIsConnected(false);
           setInterfaceDeviceLogDisplay('Shutdown');
@@ -261,10 +246,10 @@ export default function Bluetooth() {
           const batteryBase64Data = base64ToHex(characteristic?.value);
           const batteryReceivedData = new Uint8Array(stringToHexArray(batteryBase64Data));
           var batteryVoltageLevel = ((batteryReceivedData[0] << 8) | batteryReceivedData[1]);
-          var deviceAccelerometerError = ((batteryReceivedData[3] << 8 | batteryReceivedData[4]));
+          var deviceError = ((batteryReceivedData[3] << 8 | batteryReceivedData[4]));
           var deviceStatus = ((batteryReceivedData[5] << 8 | batteryReceivedData[6]));
-          setInterfaceAccelStatusDisplay(deviceAccelerometerError);
-          setInterfaceDeviceStatusDisplay(deviceStatus);
+          setInterfaceAccelStatusDisplay(MdsManager.errorMessages(deviceError));
+          setInterfaceDeviceStatusDisplay(MdsManager.statusMessages(deviceStatus));
           batteryVoltage = batteryVoltageLevel / 1000;
         }
       },
@@ -280,14 +265,13 @@ export default function Bluetooth() {
             totalThrowsDone = receivedDataArray[4];
             setInterfaceDeviceThrowsDisplay(lastestThrowId);
             totalValuesPerThrow = 0;
-            console.log("Latest Throw: / Total Throw: ", lastestThrowId + "\t", totalThrowsDone);
-            selectedThrowId = lastestThrowId - inputThrowField;
+            console.log('Latest Throw: ', lastestThrowId + '\t Total Throw: ', totalThrowsDone);
           } else if (receivedDataArray[8] == 2) {
             totalPacketsFromThrowID = receivedDataArray[4];
             totalValuesPerThrow = (totalPacketsFromThrowID + 1) * 680;
             // Right after setting the totalValuesPerThrow for the first time
             totalPacketsFromThrowProgress = totalValuesPerThrow;
-            console.log("Total Packets to be Received: ", totalPacketsFromThrowID + "   Data Size: ", totalValuesPerThrow);
+            console.log('Total Packets to be Received: ', totalPacketsFromThrowID + '   Data Size: ', totalValuesPerThrow);
           } else if (receivedDataArray[8] == 3) {
             var receivedDataArrayReverse = receivedDataArray.reverse();
             var valueY2 = uint16ToInt16((receivedDataArrayReverse[1] << 8) | receivedDataArrayReverse[2]);
@@ -299,24 +283,24 @@ export default function Bluetooth() {
             dataFromAccelerometers.push(valuesFromAccelerometer);
             //console.log(totalValuesPerThrow, totalPacketsFromThrowProgress, totalPacketsFromThrowID);
             if (totalValuesPerThrow === 0) {
-              console.log("All data received, calling dataReceivedPromise");
+              console.log('All data received, calling dataReceivedPromise');
               var outputDataArraySorted = dataFromAccelerometers.map(values => values.join('\t')).join('\n');
               var outputDataArrayUnsorted = dataFromAccelerometers;
-              FileManager.writeToFile(outputDataArraySorted, FileManager.getFilePath("Report", selectedThrowId));
-              FileManager.writeToFile(outputDataArrayUnsorted, FileManager.getFilePath("Report_Array", selectedThrowId));
+              FileManager.writeToFile(outputDataArraySorted, FileManager.getFilePath('Report', selectedThrowId));
+              FileManager.writeToFile(outputDataArrayUnsorted, FileManager.getFilePath('Report_Array', selectedThrowId));
               var roundsPerSecondCalculated = CalManager.calculateRotationsPerSecond(outputDataArrayUnsorted);
               var forceCalculated = CalManager.calculateForceOnDisc(outputDataArrayUnsorted)
-              FileManager.writeToFile("Max Rotation Speed: " + roundsPerSecondCalculated + '\t' + "Max Force: " + forceCalculated, FileManager.getFilePath("Report", selectedThrowId));
+              FileManager.writeToFile('Max Rotation Speed: ' + roundsPerSecondCalculated + '\t' + 'Max Force: ' + forceCalculated, FileManager.getFilePath('Report', selectedThrowId));
               setInterfaceDeviceRotationDisplay(roundsPerSecondCalculated);
-              setInterfaceDeviceSpeedDisplay(forceCalculated);
+              setInterfaceDeviceForceDisplay(forceCalculated);
               onDataReceived();
             }
           } else if (receivedDataArray[8] == 4) {
             totalFlashWrites = (receivedDataArray[0] << 24) | (receivedDataArray[1] << 16) | (receivedDataArray[2] << 8) | receivedDataArray[3];
-            console.log("Total Flash Writes: ", totalFlashWrites);
+            console.log('Total Flash Writes: ', totalFlashWrites);
             setInterfaceDeviceLogDisplay(totalFlashWrites.toString());
           } else {
-            console.log("No Input Number");
+            console.log('No Input Number');
           }
           
         }
@@ -340,14 +324,14 @@ export default function Bluetooth() {
       totalValuesPerThrow = (totalPacketsFromThrowID + 1) * 680;
       if (inputThrowField != null) {
         selectedThrowId = lastestThrowId - inputThrowField;
-        var FilePath = "";
-        console.log("Selected Throw: ", selectedThrowId);
+        var FilePath = '';
+        console.log('Selected Throw: ', selectedThrowId);
         setInterfaceDeviceThrowsDisplay(selectedThrowId);
         hexStringPacketThrow = new Uint8Array([selectedThrowId & 0xff, (selectedThrowId >> 8) & 0xff,]).reverse();  // Low Byte // high byte
         hexStringPacketSize.set(hexStringPacketTemplate);
         hexStringPacketSize.set(hexStringPacketThrow, 4);   
         hexStringPacketFrame = hexStringPacketSize.reduce((acc, val) => acc + val.toString(16).padStart(2, '0'), '');
-        FilePath = FileManager.getFilePath("Report", selectedThrowId);
+        FilePath = FileManager.getFilePath('Report', selectedThrowId);
         FileManager.checkForFile(FilePath);
         await timeout(200);
         try {
@@ -361,43 +345,42 @@ export default function Bluetooth() {
         hexStringDataSize.set(hexStringDataTemplate);
         hexStringDataSize.set(hexStringPacketThrow, 4);
         hexStringDataFrame = hexStringDataSize.reduce((acc, val) => acc + val.toString(16).padStart(2, '0'), '');
-        console.warn("Transfer Inprogress");
-        setColorProgressBar("#44d8be");
+        console.warn('Transfer Inprogress');
+        setInterfaceDeviceLogDisplay('Transfer Inprogress');
+        setColorProgressBar('#44d8be');
         try {
           await writeToCharacteristic(hexStringDataFrame);
         } catch (error) {
           console.error(error);
         }
         if (!dataReceivedStatus) {
-          console.log("Waiting for dataReceivedPromise");
+          console.log('Waiting for dataReceivedPromise');
           dataReceivedPromise = new Promise<void>((resolve) => {
             resolveDataReceivedPromise = resolve;
             const onDataReceivedListener = () => {
-              console.log("Resolving dataReceivedPromise");
+              console.log('Resolving dataReceivedPromise');
               resolve();
               subscription.remove();
             };
             const subscription = DeviceEventEmitter.addListener('dataReceived', onDataReceivedListener);
           });
-          var timeoutDuration = (1000 * totalPacketsFromThrowID) + 10000; // adjust timeout delay based on total packets in throw
-          console.log("Timeout Delay:", timeoutDuration); 
+          var timeoutDuration = (1000 * totalPacketsFromThrowID) + 30000; // adjust timeout delay based on total packets in throw
+          console.log('Timeout Delay: ', timeoutDuration); 
           await Promise.race([dataReceivedPromise, timeout(timeoutDuration)]);
-          console.log("dataReceivedPromise resolved or timed out");
+          console.log('dataReceivedPromise resolved or timed out');
         } else {
-          console.log("Data already received, skipping dataReceivedPromise");
+          console.log('Data already received, skipping dataReceivedPromise');
         }
         if (totalValuesPerThrow === 0) {
-          setColorProgressBar("#bd35bd");
+          setColorProgressBar('#bd35bd');
           dataFromAccelerometers = [];
-          console.log("Transfer Complete");
+          console.log('Transfer Complete');
           setInterfaceDeviceLogDisplay('Transfer Complete');
           break;
         } else {
-          setColorProgressBar("#f15a29");
-          //FileManager.checkFile(selectedThrowId);
-          console.warn("Transfer NOT Complete, Try again");
+          setColorProgressBar('#f15a29');
+          console.warn('Transfer NOT Complete, Try again');
           setInterfaceDeviceLogDisplay('Transfer NOT Complete, Try again');
-          totalValuesPerThrow = (totalPacketsFromThrowID + 1) * 680;
           await timeout(2500);
           break;
         }
@@ -422,18 +405,14 @@ export default function Bluetooth() {
       <View style={Styles.rowView}>
         <TouchableOpacity style={{width: 125}}>
           {!isConnected ? (
-            <Button title="Connect" color='#44d8be' onPress={() => { scanForDevices(); }} disabled={false} />
+            <Button title='Connect' color='#44d8be' onPress={() => { scanForDevices(); }} disabled={false} />
           ) : (
-            <Button title="Disonnect" color='#f15a29' onPress={() => { disconnectFromDevice(); }} disabled={false} />
+            <Button title='Disonnect' color='#f15a29' onPress={() => { disconnectFromDevice(); }} disabled={false} />
           )}
         </TouchableOpacity>
       </View>
 
-      <View style={{paddingBottom: 20}}></View>
-
-      <Text style={Styles.throwInfo}>Throw: {interfaceDeviceThrowsDisplay}</Text>
-      <Text style={Styles.forceInfo}>Force: {interfaceDeviceSpeedDisplay} </Text>
-      <Text style={Styles.rotationInfo}>RPS: {interfaceDeviceRotationDisplay} </Text>
+      <View style={{paddingBottom: 30}}></View>
 
       <View style={Styles.progressBarBatteryStyle}>
           <ProgressBar progress={progressbarBattery / 100} color={colorProgressBarBattery} />
@@ -442,108 +421,59 @@ export default function Bluetooth() {
       <Text style={Styles.batteryPercentInfo}> {progressbarBattery.toFixed(0)}%</Text>
       <Text style={Styles.batteryVoltageInfo}> {(batteryVoltage).toFixed(1)}V</Text>
 
-      <View style={{paddingBottom: 10}}></View>
-
-      <View style={Styles.rowView}>
-        <View style={Styles.buttonStyle}>
-          <Button title="Receive Data" style={Styles.button} color="#841584" onPress={() => sendDataRequest('01')} />
-        </View>
-        <TextInput
-            style={Styles.input}
-            onChangeText={handleThrowFieldChange}
-            value={inputThrowField.toString()}
-            keyboardType="numeric"
-          />
-        <View style={Styles.buttonStyle}>
-          <Button title="Print   Data" style={Styles.button} color="#841584" onPress={() => receiveDataFromDevice(inputThrowField)} />
-        </View>
-      </View>
-
-      <View style={{paddingBottom: 30}}></View>
-
       <View style={Styles.rowView}>
         <View style={Styles.progressBarStyle}>
           <ProgressBar progress={progressBar  / 100} color={colorProgressBar} />
         </View>
       </View> 
 
+      <View style={Styles.rowView}>
+        <View style={Styles.buttonStyle}>
+          <Button title='Receive Data' style={Styles.button} color='#841584' onPress={() => sendDataRequest('01')} />
+        </View>
+        <TextInput
+            style={Styles.input}
+            onChangeText={handleThrowFieldChange}
+            value={inputThrowField.toString()}
+            keyboardType='numeric'
+          />
+        <View style={Styles.buttonStyle}>
+          <Button title='Print   Data' style={Styles.button} color='#841584' onPress={() => receiveDataFromDevice(inputThrowField)} />
+        </View>
+      </View>
+
+      <View style={{paddingBottom: 30}}></View>
+
+
+
       <View style={{paddingBottom: 0}}></View>
 
       <View style={Styles.rowView}>
         <View style={Styles.buttonStyle}>
-          <Button title="Flash" style={Styles.button} color="#841584" onPress={() => writeToCharacteristic('04')} />
+          <Button title="Flash" style={Styles.button} color='#841584' onPress={() => writeToCharacteristic('04')} />
         </View>
         <View style={Styles.buttonStyle}>
-          <Button title="Power" style={Styles.button} color="#841584" onPress={() => writeToCharacteristic('05')} />
+          <Button title='Shutdown' style={Styles.button} color='#841584' onPress={() => writeToCharacteristic('05')} />
         </View>
         <View style={Styles.buttonStyle}>
-          <Button title="Extra" style={Styles.button} color="#841584" onPress={() => writeExtraInformation()} />
+          <Button title='Extra' style={Styles.button} color='#841584' onPress={() => writeToCharacteristic('06')} />
         </View>
       </View>
 
-      <View style={{paddingBottom: 20}}></View>
+      <View style={{paddingBottom: 100}}></View>
 
-      <View style={Styles.rowView}>
-        <Text style={Styles.baseText}>Log: {interfaceDeviceLogDisplay}</Text>
-      </View>
+      <Text style={Styles.throwInfo}>Throw: {interfaceDeviceThrowsDisplay}</Text>
+      <Text style={Styles.forceInfo}>Force: {interfaceDeviceForceDisplay} </Text>
+      <Text style={Styles.rotationInfo}>RPS: {interfaceDeviceRotationDisplay} </Text>
+      <Text style={Styles.speedInfo}>M/S: {interfaceDeviceSpeedDisplay} </Text>
 
-      <View style={{paddingBottom: 20}}></View>  
-      
-      <Text style={Styles.typeInfo}>Type: {inputTypeField}</Text>
-      <View style={Styles.rowView}>
-        <TextInput
-          style={Styles.inputNameNType}
-          onChangeText={handleDiscFieldChange}
-          value={inputDiscField}
-        />  
-      </View>
-      <Text style={Styles.nameInfo}>Name: {inputNameField}</Text>
+      <Text style={Styles.logInfo}>LOG: {interfaceDeviceLogDisplay}</Text>
+      <Text style={Styles.errorInfo}>ERROR: {interfaceAccelStatusDisplay}</Text>
+      <Text style={Styles.statusInfo}>STATUS: {interfaceDeviceStatusDisplay} </Text>
 
-      <View style={{paddingBottom: 30}}></View>
 
-      <View style={Styles.rowView}>
-        <View style={Styles.buttonStyleThrowType}>
-          <Button title="Kevin" style={Styles.button} color="#f99221" onPress={() => setInputNameField("Kevin")} />
-        </View>
-        <View style={Styles.buttonStyleThrowType}>
-          <Button title="Daniel" style={Styles.button} color="#f99221" onPress={() => setInputNameField("Daniel")} />
-        </View>
-      </View>
 
-      <View style={{paddingBottom: 30}}></View>
-
-      <View style={Styles.rowView}>
-        <View style={Styles.buttonStyleThrowType}>
-          <Button title="Tree" style={Styles.button} color="#f99221" onPress={() => setInputDiscField("Tree")} />
-        </View>
-        <View style={Styles.buttonStyleThrowType}>
-          <Button title="Null" style={Styles.button} color="#f99221" onPress={() => setInputDiscField("")} />
-        </View>
-      </View>
-      
-      <View style={{paddingBottom: 30}}></View>
-
-      <View style={Styles.rowView}>
-      <View style={Styles.buttonStyleThrowType}>
-          <Button title="Back" style={Styles.button} color="#f99221" onPress={() => setInputTypeField("Back")} />
-        </View>
-        <View style={Styles.buttonStyleThrowType}>
-          <Button title="Fore" style={Styles.button} color="#f99221" onPress={() => setInputTypeField("Fore")} />
-        </View>
-      </View>
-
-      <View style={{paddingBottom: 30}}></View>
-
-      <View style={Styles.rowView}>
-        <View style={Styles.buttonStyleThrowType}>
-          <Button title="Nade" style={Styles.button} color="#f99221" onPress={() => setInputTypeField("Nade")} />
-        </View>
-        <View style={Styles.buttonStyleThrowType}>
-          <Button title="Thawk" style={Styles.button} color="#f99221" onPress={() => setInputTypeField("Thawk")} />
-        </View>
-      </View>
-              
-
+            
     </View>
   );
 }
