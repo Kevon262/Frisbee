@@ -1,4 +1,5 @@
-//File Management
+//File
+
 import {convertTo2DArray} from './Convert';
 
 const RNFS = require('react-native-fs');
@@ -44,9 +45,10 @@ export class File {
         }
     }
 
+    //Write data to file
     writeToFile(input:any, filePath:string) {
         var Path = RNFS.DownloadDirectoryPath + filePath;
-        if (RNFS.exists(Path)){
+        if (RNFS.exists(Path)){ //Checks for file, if it exists add data to file
             RNFS.appendFile(Path, input + '\n', 'utf8')
             .then((success:any) => {
                 console.log('Appended Data to File: ', Path);
@@ -54,7 +56,7 @@ export class File {
             .catch((error:any) => {
                 console.error(error.message);
             }); 
-        } else {
+        } else { //If file does not exist, create file then write data to file
             RNFS.writeFile(Path, input + '\n', 'utf8')
             .then((success:any) => {
                 console.log('Writing Data to File: ', Path);
@@ -65,6 +67,8 @@ export class File {
         }
     }
 
+
+    //Read file from selected throw. Extra not in use yet
     readTheDamFile(fileThrowID: number): Promise<any> {
         const pathFile = RNFS.DownloadDirectoryPath + '/Frisbee_Data/Report_' + fileThrowID + '.txt';
         return new Promise((resolve, reject) => {
@@ -79,8 +83,7 @@ export class File {
         });
       }
 
-
-    //Read Data from File
+    //Read Data from File. Extra not in use yet
     async readDataFromFile(fileThrowID:number) {
         try {
         var jsonArrayData = await this.readTheDamFile(fileThrowID);
