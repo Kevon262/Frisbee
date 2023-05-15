@@ -38,7 +38,7 @@ export class Calculations {
   }
 
   /**
-  * Asked ChatGPT
+  * Asked ChatGPT / Personal Chat
   * https://chat.openai.com/
   * Date Accesed: 026/04/23
   */

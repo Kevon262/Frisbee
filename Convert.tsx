@@ -60,7 +60,7 @@ export var convertBase = function () {
 }();
 
 /**
-* Asked ChatGPT
+* Asked ChatGPT / Personal Chat
 * https://chat.openai.com/
 * Date Accesed: 07/03/23
 */
@@ -82,7 +82,7 @@ export function base64ToHex(base64String:any) {
 }
 
 /**
-* Asked ChatGPT
+* Asked ChatGPT / Personal Chat
 * https://chat.openai.com/
 * Date Accesed: 20/03/23
 */
@@ -92,7 +92,7 @@ export function stringToHexArray(inputString: string): number[] {
 }
 
 /**
-* Asked ChatGPT
+* Asked ChatGPT / Personal Chat
 * https://chat.openai.com/
 * Date Accesed: 20/03/23
 */
@@ -101,7 +101,7 @@ export function hexArrayToString(hexArray: number[]): string {
 }
 
 /**
-* Asked ChatGPT
+* Asked ChatGPT / Personal Chat
 * https://chat.openai.com/
 * Date Accesed: 13/04/23
 */
@@ -117,7 +117,7 @@ export function convertTo2DArray(inputArray:any, rowSize:any) {
 }
 
 /**
-* Asked ChatGPT
+* Asked ChatGPT / Personal Chat
 * https://chat.openai.com/
 * Date Accesed: 21/03/23
 */

@@ -73,6 +73,11 @@ export default function Bluetooth() {
     setInputThrowField(uintValue);
   };
 
+  /**
+  * Asked ChatGPT / Personal Chat
+  * https://chat.openai.com/
+  * Date Accesed: 27/04/23
+  */
   //Progressbar for interface
   var [colorProgressBar, setColorProgressBar] = useState('blue');
   const [progressBar, setProgressBar] = useState(0);
@@ -101,6 +106,11 @@ export default function Bluetooth() {
     }
   }
 
+  /**
+  * Asked ChatGPT / Personal Chat
+  * https://chat.openai.com/
+  * Date Accesed: 28/04/23
+  */
   //Update state every 100 milliseconds
   useEffect(() => { 
     const interval = setInterval(() => {
@@ -111,6 +121,11 @@ export default function Bluetooth() {
     return () => clearInterval(interval);
   }, []);
 
+  /**
+  * Asked ChatGPT / Personal Chat
+  * https://chat.openai.com/
+  * Date Accesed: 29/04/23
+  */
   //Timeout Function to create a delay when using await
   function timeout(ms: number) {
     return new Promise<void>((resolve) => setTimeout(resolve, ms)); //Timeout function to work with async functions
@@ -127,6 +142,9 @@ export default function Bluetooth() {
     }
     DeviceEventEmitter.emit('dataReceived');
   }
+
+
+  
 
   //Scan for frisbee devices
   async function scanForDevices() {

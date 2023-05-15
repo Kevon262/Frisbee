@@ -3,6 +3,12 @@
 type ErrorId = number | string;
 
 export class Messages {
+
+  /**
+  * Asked ChatGPT / Personal Chat
+  * https://chat.openai.com/
+  * Date Accesed: 30/04/23
+  */
   //Gives error message based on id received
   errorMessages(id: ErrorId): string | null {
     const errorMessages: { [key: string]: string } = {
@@ -27,6 +33,11 @@ export class Messages {
     return errorMessages[id.toString()] || null;
   }
 
+  /**
+  * Asked ChatGPT / Personal Chat
+  * https://chat.openai.com/
+  * Date Accesed: 30/04/23
+  */
   //Returns status messages based on bits received
   statusMessages(status: number): string {
     const statusMessages: { [key: string]: string } = {
